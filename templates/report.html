@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sack Counting AI Dashboard</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Powerful PDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        :root {
+            --bg-dark: #0f172a; --theme-color: #3b82f6; --text-main: #f8fafc; --text-secondary: #94a3b8;
+            --card-bg: rgba(30, 41, 59, 0.7); --card-border: rgba(255, 255, 255, 0.1);
+        }
+        body {
+            margin: 0; font-family: 'Inter', sans-serif;
+            color: var(--text-main); height: 100vh; overflow: hidden;
+            display: flex; flex-direction: column; transition: color 0.3s;
+        }
+
+        /* Light Mode CSS */
+        body.light-mode {
+            --bg-dark: #f1f5f9;
+            --text-main: #1e293b;
+            --text-secondary: #64748b;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --card-border: rgba(0, 0, 0, 0.15);
+        }
+        body.light-mode .bg-animation { background: linear-gradient(135deg, #f1f5f9, #e2e8f0, #cbd5e1, #f1f5f9); }
+        body.light-mode .top-navbar { background: rgba(255, 255, 255, 0.7); }
+        body.light-mode select, body.light-mode input { background: rgba(255,255,255,0.8) !important; color: #1e293b !important; border-color: rgba(0,0,0,0.2) !important; }
+        body.light-mode .btn-back { border-color: rgba(0,0,0,0.2); color: #1e293b; background: rgba(0,0,0,0.05); }
+        body.light-mode .kpi-value { color: #1e293b; }
+        body.light-mode .log-item { background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.1); color: #1e293b; }
+        body.light-mode .log-item:hover { background: rgba(0,0,0,0.08); }
+        
+        .dashboard-layout { transition: grid-template-columns 0.4s ease; }
+        .right-col { transition: opacity 0.4s ease, transform 0.4s ease; transform-origin: right; }
+        
+        .bg-animation {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(135deg, #020617, #0f172a, #1e1b4b, #0f172a);
+            background-size: 400% 400%; animation: gradientBG 20s ease infinite; z-index: -1;
+        }
+        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        
+        /* Futuristic AI Overlays */
+        .scanner-line {
+            position: absolute; top: 0; left: 0; width: 100%; height: 2px;
+            background: linear-gradient(90deg, transparent, #10b981, transparent);
+            box-shadow: 0 0 10px #10b981, 0 0 20px #10b981; z-index: 4; opacity: 0.7;
+            animation: scan 3s linear infinite; pointer-events: none;
+        }
+        @keyframes scan { 0% { top: 0%; } 50% { top: 90%; } 100% { top: 0%; } }
+        .pulse-dot { animation: blink 1s infinite alternate; }
+        @keyframes blink { 0% { opacity: 0.2; box-shadow: none; } 100% { opacity: 1; box-shadow: 0 0 10px #10b981; } }
+        
+        .frame-bracket { position: absolute; width: 25px; height: 25px; border-color: rgba(59,130,246,0.8); border-style: solid; z-index: 5; pointer-events: none; }
+        .frame-tl { top: 10px; left: 10px; border-width: 3px 0 0 3px; }
+        .frame-tr { top: 10px; right: 10px; border-width: 3px 3px 0 0; }
+        .frame-bl { bottom: 50px; left: 10px; border-width: 0 0 3px 3px; }
+        .frame-br { bottom: 50px; right: 10px; border-width: 0 3px 3px 0; }
+
+        .pop-animation { animation: pop 0.4s ease-out; color: #10b981 !important; text-shadow: 0 0 15px rgba(16,185,129,0.8); display: inline-block; }
+        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+        
+        /* Modern Toggle Switches */
+        .modern-toggle { position: relative; display: inline-block; width: 36px; height: 18px; }
+        .modern-toggle input { opacity: 0; width: 0; height: 0; }
+        .modern-toggle .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.1); border: 1px solid var(--card-border); transition: .3s; border-radius: 20px; }
+        .modern-toggle .slider:before { position: absolute; content: ""; height: 12px; width: 12px; left: 2px; bottom: 2px; background-color: var(--text-secondary); transition: .3s; border-radius: 50%; }
+        .modern-toggle input:checked + .slider { background-color: rgba(16,185,129,0.2); border-color: #10b981; box-shadow: inset 0 0 5px rgba(16,185,129,0.5); }
+        .modern-toggle input:checked + .slider:before { transform: translateX(18px); background-color: #10b981; box-shadow: 0 0 10px #10b981; }
+        
+        .chart-glow { filter: drop-shadow(0 0 15px rgba(59,130,246,0.6)); transition: filter 0.3s ease; }
+        
+        .top-navbar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 40px; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--card-border); z-index: 10;
+        }
+        .nav-left { display: flex; align-items: center; gap: 15px; }
+        .nav-left i { font-size: 32px; color: var(--theme-color); }
+        .nav-left h2 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: 1px; }
+        
+        .btn-back { background: rgba(255,255,255,0.1); color: var(--text-main); border: 1px solid var(--card-border); padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none; display: flex; align-items: center; gap: 8px; transition: all 0.3s; margin-right: 20px; }
+        .btn-back:hover { background: var(--theme-color); border-color: var(--theme-color); box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); }
+
+        .btn-export { background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; border: none; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); }
+        .btn-export:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(239, 68, 68, 0.6); }
+
+        .dashboard-layout {
+            display: grid; grid-template-columns: 2fr 1fr; gap: 20px;
+            padding: 20px 40px; height: calc(100vh - 75px); overflow-y: auto;
+        }
+        
+        .glass-card {
+            background: var(--card-bg); border: 1px solid var(--card-border);
+            border-radius: 16px; padding: 20px; backdrop-filter: blur(16px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .panel-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .panel-header h3 { margin: 0; font-size: 16px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .panel-header i { font-size: 20px; color: var(--theme-color); }
+        .badge { background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; border: 1px solid rgba(255,255,255,0.05); }
+
+        .video-wrapper { width: 100%; border-radius: 12px; overflow: hidden; background: #000; border: 1px solid rgba(255,255,255,0.1); }
+        video { width: 100%; height: auto; display: block; }
+        
+        .kpi-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; }
+        .kpi-item { background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 15px; }
+        .kpi-item i { font-size: 24px; margin-bottom: 5px; display: block; }
+        .kpi-item .lbl { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600; }
+        .kpi-item .val { font-size: 24px; font-weight: 700; margin-top: 5px; }
+        
+        .log-container { height: calc(100vh - 430px); overflow-y: auto; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); padding: 10px; }
+        .log-item { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+        .log-item:last-child { border-bottom: none; }
+        .log-time { color: var(--text-main); font-weight: 600; font-family: monospace; }
+        .log-highlight { color: #10b981; font-weight: 600; background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); padding: 2px 6px; border-radius: 4px; }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+    </style>
+    <style>
+        body { opacity: 0; transition: opacity 0.5s ease-in; }
+        body.loaded { opacity: 1; }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+
+    <header class="top-navbar">
+        <div class="nav-left">
+            <a href="/" class="btn-back"><i class="ph-bold ph-arrow-left"></i> Dashboard</a>
+            <i class="ph-fill ph-aperture"></i>
+            <h2>Laporan Analitik Karung AI | {{ date }}</h2>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <button onclick="toggleTheme()" style="background:transparent; border:none; color:var(--text-main); font-size: 24px; cursor: pointer; margin-right: 15px;"><i class="ph-fill ph-sun" id="theme-icon"></i></button>
+            <button class="btn-export" style="background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);" onclick="generateCSV()"><i class="ph-bold ph-file-csv"></i> Ekspor CSV</button>
+            <button class="btn-export" id="export-pdf" onclick="generatePDF()"><i class="ph-bold ph-file-pdf"></i> Ekspor PDF</button>
+        </div>
+    </header>
+
+    <main class="dashboard-layout" id="pdf-content">
+        <!-- Kolom Kiri: Video & Chart -->
+        <div class="left-col" style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="glass-card">
+                <div class="panel-header">
+                    <h3><i class="ph-fill ph-video-camera"></i> Arsip Rekaman Video</h3>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Speed:</span>
+                        <select onchange="document.getElementById('ai-video').playbackRate = this.value" style="background: rgba(0,0,0,0.5); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 5px; outline: none; font-family: inherit; font-size: 12px; cursor: pointer;">
+                            <option value="1">Normal (1x)</option>
+                            <option value="2">2x</option>
+                            <option value="4">4x</option>
+                            <option value="8">8x</option>
+                            <option value="16">Max (16x)</option>
+                        </select>
+                        <span class="badge">Model: YOLOv8 Segment</span>
+                    </div>
+                </div>
+                <div class="video-wrapper" style="position: relative;">
+                    <!-- Futuristic Video Overlays Grouped -->
+                    <div id="ai-hud">
+                        <div class="scanner-line"></div>
+                        <div class="frame-bracket frame-tl"></div>
+                        <div class="frame-bracket frame-tr"></div>
+                        <div class="frame-bracket frame-bl"></div>
+                        <div class="frame-bracket frame-br"></div>
+                        
+                        <div style="position: absolute; top: 20px; left: 20px; z-index: 5; display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.6); padding: 5px 12px; border-radius: 4px; border: 1px solid rgba(16,185,129,0.4); font-family: monospace; font-size: 11px; color: #10b981; backdrop-filter: blur(4px);">
+                            <div class="pulse-dot" style="width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></div>
+                            AI VISION ACTIVE
+                        </div>
+                        
+                        <div style="position: absolute; top: 20px; right: 20px; z-index: 5; font-family: monospace; font-size: 11px; color: #60a5fa; text-shadow: 0 0 5px #60a5fa; background: rgba(0,0,0,0.5); padding: 4px 8px; border-radius: 4px;">
+                            TRACKING: ON | CONF: 90%
+                        </div>
+                    </div>
+                    
+                    <video id="ai-video" controls autoplay muted playsinline>
+                        <source src="/video" type="video/mp4">
+                    </video>
+                </div>
+                
+                <!-- Advanced Video Heatmap (Timeline) -->
+                <div style="margin-top: 10px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary); margin-bottom: 5px;">
+                        <span>00:00</span>
+                        <span><i class="ph-fill ph-flame" style="color:#10b981;"></i> Peta Deteksi Karung (Heatmap)</span>
+                        <span id="video-duration">12:00</span>
+                    </div>
+                    <div class="video-heatmap" id="video-heatmap" style="width: 100%; height: 14px; background: rgba(0,0,0,0.5); border-radius: 6px; position: relative; overflow: hidden; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);">
+                        <!-- Detections injected via JS -->
+                        <div id="heatmap-progress" style="position: absolute; top:0; left:0; height: 100%; width: 0%; background: rgba(59,130,246,0.2); pointer-events: none;"></div>
+                        <div id="heatmap-indicator" style="position: absolute; top:-2px; left:0; width: 3px; height: 18px; background: #fff; box-shadow: 0 0 8px #fff; pointer-events: none; border-radius: 2px; z-index: 10;"></div>
+                    </div>
+                </div>
+                
+                <!-- Modern Toggles Panel -->
+                <div style="display: flex; gap: 20px; align-items: center; justify-content: center; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                    <div style="display:flex; align-items:center; gap:8px;" title="Tampilkan/Sembunyikan AI Vision Scanner">
+                        <span style="font-size: 11px; font-weight:600; color:var(--text-secondary); text-transform:uppercase;">HUD Scanner</span>
+                        <label class="modern-toggle">
+                            <input type="checkbox" id="toggle-hud" checked onchange="document.getElementById('ai-hud').style.display = this.checked ? 'block' : 'none'">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card" style="flex-grow: 1; display: flex; flex-direction: column;">
+                <div class="panel-header">
+                    <h3><i class="ph-fill ph-chart-bar"></i> Detection Timeline (Karung/Menit)</h3>
+                    <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border-color: rgba(16, 185, 129, 0.4);">
+                        <i class="ph-fill ph-check-circle"></i> Sumber Data Asli
+                    </span>
+                </div>
+                <div id="chart-container" style="flex-grow: 1; position: relative; min-height: 200px;">
+                    <canvas id="distributionChart"></canvas>
+                </div>
+                <!-- SMART INSIGHTS (Derived purely from data) -->
+                <div class="smart-insights" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed var(--card-border); display: flex; gap: 20px; font-size: 13px; color: var(--text-secondary); align-items: center; justify-content: center;">
+                    <div style="display:flex; align-items:center; gap:5px;" title="Menit dengan intensitas deteksi karung tertinggi">
+                        <i class="ph-fill ph-fire" style="color:#ef4444; font-size: 16px;"></i> 
+                        <span id="peak-minute">Menit Tersibuk: Sedang menghitung...</span>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:5px;" title="Rata-rata waktu tunggu antar deteksi karung yang berurutan">
+                        <i class="ph-fill ph-clock" style="color:#3b82f6; font-size: 16px;"></i> 
+                        <span id="avg-gap">Jeda Antar Karung: Sedang menghitung...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Kolom Kanan: KPI & Logs -->
+        <div class="right-col" style="display: flex; flex-direction: column; gap: 20px;">
+            <div class="glass-card">
+                <div class="kpi-grid">
+                    <div class="kpi-item">
+                        <i class="ph-fill ph-package" style="color: #f59e0b;"></i>
+                        <div class="lbl">Total Karung</div>
+                        <div class="val" id="total-sacks">0</div>
+                    </div>
+                    <div class="kpi-item">
+                        <i class="ph-fill ph-scales" style="color: #a855f7;"></i>
+                        <div class="lbl">Estimasi Berat</div>
+                        <div class="val"><span id="total-weight">0</span> Ton</div>
+                    </div>
+                    <div class="kpi-item" style="grid-column: span 2;">
+                        <i class="ph-fill ph-target" style="color: #10b981;"></i>
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                            <div>
+                                <div class="lbl">Akurasi AI</div>
+                                <div class="val" id="accuracy">0%</div>
+                            </div>
+                            <div style="color: #f59e0b; font-size: 11px; line-height: 1.4; display: flex; align-items: flex-start; gap: 5px; max-width: 60%; text-align: right; justify-content: flex-end;">
+                                <span>*Akurasi belum 100% karena faktor distorsi cahaya, debu lensa, dan penumpukan karung di sabuk.</span>
+                                <i class="ph-bold ph-warning-circle" style="margin-top: 2px; font-size: 14px;"></i> 
+                            </div>
+                        </div>
+                    </div>
+                    <div class="kpi-item">
+                        <i class="ph-fill ph-trend-up" style="color: #3b82f6;"></i>
+                        <div class="lbl">Rata-Rata (Avg/Min)</div>
+                        <div class="val" id="avg-rate">0.0</div>
+                    </div>
+                </div>
+
+                <div class="panel-header" style="margin-top: 10px;">
+                    <h3><i class="ph-fill ph-list-dashes"></i> Log Deteksi Sinkron</h3>
+                    <input type="text" id="log-search" placeholder="Cari ID Karung..." style="background: rgba(0,0,0,0.5); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 5px; outline: none; font-size: 12px; width: 120px;" onkeyup="filterLogs()">
+                </div>
+                <div class="log-container" id="activity-log">
+                    <!-- JS will insert logs here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Hidden Print Template (A4 Paper Style) -->
+    <div style="display: none;">
+        <div id="print-template" style="width: 800px; padding: 40px; font-family: 'Times New Roman', serif; color: #000; background: #fff;">
+            <!-- Header -->
+            <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">
+                <h1 style="margin: 0; font-size: 24px; font-weight: bold; text-transform: uppercase;">Enterprise Feedmill</h1>
+                <p style="margin: 5px 0 0 0; font-size: 14px;">Laporan Resmi Analitik Penghitungan Karung Otomatis (Computer Vision)</p>
+            </div>
+            
+            <!-- Metadata -->
+            <table style="width: 100%; margin-bottom: 20px; font-size: 14px;">
+                <tr>
+                    <td style="width: 120px; font-weight: bold;">Tanggal</td>
+                    <td>: {{ date }}</td>
+                    <td style="width: 120px; font-weight: bold;">Operator AI</td>
+                    <td>: Key</td>
+                </tr>
+                <tr>
+                    <td style="font-weight: bold;">Model AI</td>
+                    <td>: YOLOv8 Segment</td>
+                    <td style="font-weight: bold;">Area</td>
+                    <td>: Loading Dock A</td>
+                </tr>
+            </table>
+
+            <!-- Ringkasan Eksekutif -->
+            <h3 style="font-size: 16px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">A. Ringkasan Eksekutif</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; text-align: center;">
+                <thead>
+                    <tr>
+                        <th style="border: 1px solid #000; padding: 8px; background: #f0f0f0;">Total Karung</th>
+                        <th style="border: 1px solid #000; padding: 8px; background: #f0f0f0;">Estimasi Tonase</th>
+                        <th style="border: 1px solid #000; padding: 8px; background: #f0f0f0;">Akurasi Model</th>
+                        <th style="border: 1px solid #000; padding: 8px; background: #f0f0f0;">Kecepatan (Avg/Min)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="border: 1px solid #000; padding: 10px; font-weight: bold;" id="print-total">0</td>
+                        <td style="border: 1px solid #000; padding: 10px; font-weight: bold;" id="print-weight">0 Ton</td>
+                        <td style="border: 1px solid #000; padding: 10px; font-weight: bold;" id="print-acc">0%</td>
+                        <td style="border: 1px solid #000; padding: 10px; font-weight: bold;" id="print-rate">0.0</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- Grafik Snapshot -->
+            <h3 style="font-size: 16px; border-bottom: 1px solid #ccc; padding-bottom: 5px;">B. Distribusi Deteksi</h3>
+            <div style="text-align: center; margin-bottom: 30px;">
+                <!-- We add a white background to the canvas image specifically for the print -->
+                <img id="print-chart-img" style="max-width: 100%; max-height: 250px; border: 1px solid #ddd; background: #fff; padding: 10px;" src="" alt="Grafik Timeline">
+            </div>
+
+            <!-- Tanda Tangan -->
+            <div style="margin-top: 50px; display: flex; justify-content: space-between; text-align: center;">
+                <div style="width: 250px;">
+                    <p style="margin-bottom: 80px;">Dibuat Oleh,</p>
+                    <p style="text-decoration: underline; font-weight: bold; margin: 0;">Key</p>
+                    <p style="margin: 0;">AI System Operator</p>
+                </div>
+                <div style="width: 250px;">
+                    <p style="margin-bottom: 80px;">Disahkan Oleh,</p>
+                    <p style="text-decoration: underline; font-weight: bold; margin: 0;">_____________________</p>
+                    <p style="margin: 0;">Superintendent Area</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleTheme() {
+            const body = document.body;
+            const icon = document.getElementById('theme-icon');
+            body.classList.toggle('light-mode');
+            if (body.classList.contains('light-mode')) {
+                icon.classList.remove('ph-sun');
+                icon.classList.add('ph-moon');
+            } else {
+                icon.classList.remove('ph-moon');
+                icon.classList.add('ph-sun');
+            }
+            
+            // Re-render chart to adapt to new text colors
+            if (window.renderChart) window.renderChart();
+        }
+    </script>
+    <script src="{{ url_for('static', filename='js/main.js') }}?v=10"></script>
+    <script>window.addEventListener("load", () => document.body.classList.add("loaded"));</script>
+</body>
+</html>

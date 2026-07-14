@@ -1,0 +1,28 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+
+# Large Media Files (Video & AI Models)
+*.mp4
+*.avi
+*.mkv
+*.pt
+*.onnx
+*.weights
+
+# Other media
+*.jpg
+*.png
+
+# Ignore previous temp / debug outputs
+output/
+debug/
