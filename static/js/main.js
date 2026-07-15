@@ -307,6 +307,10 @@ window.generatePDF = function() {
     // 1. Transfer absolute stats data to print template directly from UI
     const totalCount = document.getElementById('total-sacks').innerText || '0';
     document.getElementById('print-total').innerText = totalCount;
+    
+    // Inject the real-time date directly to the print template
+    const printDate = document.getElementById('print-date');
+    if (printDate) printDate.innerText = ': ' + todayStr;
 
     // 2. Capture chart as image
     const chartCanvas = document.getElementById('distributionChart');
