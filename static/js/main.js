@@ -16,9 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
         canvas.height = img.clientHeight;
     }
     
-    // Original Video Resolution from OpenCV Cap
-    const VIDEO_ORIGINAL_WIDTH = 1280;
-    const VIDEO_ORIGINAL_HEIGHT = 720;
+    // Original Video Resolution from OpenCV Cap (Fallback)
+    let videoOriginalWidth = 1280;
+    let videoOriginalHeight = 720;
     
     window.addEventListener('resize', resizeCanvas);
     if(img) {
@@ -43,8 +43,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!ctx) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        const scaleX = canvas.width / VIDEO_ORIGINAL_WIDTH;
-        const scaleY = canvas.height / VIDEO_ORIGINAL_HEIGHT;
+        if (data.frame_width) videoOriginalWidth = data.frame_width;
+        if (data.frame_height) videoOriginalHeight = data.frame_height;
+        
+        const scaleX = canvas.width / videoOriginalWidth;
+        const scaleY = canvas.height / videoOriginalHeight;
         
         if (data.zone && data.zone.length > 0) {
             ctx.beginPath();

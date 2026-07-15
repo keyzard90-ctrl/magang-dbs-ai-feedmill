@@ -8,7 +8,7 @@ import json
 app = Flask(__name__)
 app.secret_key = 'enterprise_ai_key'
 app.config['TEMPLATES_AUTO_RELOAD'] = True
-VIDEO_PATH = "Camera2_16-32-45_12menit.mp4" # Source video mentah
+VIDEO_PATH = "rtsp://admin:K0l0r4n123@10.38.250.21/cam/realmonitor?channel=1&subtype=1" # Live RTSP Stream
 
 # Global state untuk menyimpan data AI terbaru
 latest_ai_data = {}
@@ -107,17 +107,24 @@ def stream_data():
     return Response(stream_with_context(generate()), mimetype='text/event-stream')
 
 def gen_frames():
-    cap = cv2.VideoCapture(VIDEO_PATH)
-    while cap.isOpened():
-        success, frame = cap.read()
-        if not success:
-            cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
+    while True:
+        cap = cv2.VideoCapture(VIDEO_PATH)
+        if not cap.isOpened():
+            time.sleep(2)
             continue
-        ret, buffer = cv2.imencode('.jpg', frame)
-        frame_bytes = buffer.tobytes()
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
-        time.sleep(0.04) # Simulate 25 FPS for local video
+            
+        while cap.isOpened():
+            success, frame = cap.read()
+            if not success:
+                break
+                
+            ret, buffer = cv2.imencode('.jpg', frame)
+            frame_bytes = buffer.tobytes()
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+                   
+        cap.release()
+        time.sleep(1)
 
 @app.route('/video_feed')
 def video_feed():

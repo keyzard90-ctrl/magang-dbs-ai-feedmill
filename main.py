@@ -191,8 +191,8 @@ class VectorCounter:
 # MAIN APPLICATION MODULE
 # ==========================================
 # ----------------- CONFIGURATION -----------------
-VIDEO_INPUT = "Camera2_16-32-45_12menit.mp4"
-MODEL_PATH = "karung-dimuat-detection-di-feedmill-yolo26n-seg-200e.pt"
+VIDEO_INPUT = "rtsp://admin:K0l0r4n123@10.38.250.21/cam/realmonitor?channel=1&subtype=1"
+MODEL_PATH = "karung-dimuat-detection-di-feedmill-yolo26n-seg-200e.engine"
 
 # Konstanta Zona Kotak Bak Truk kini dihitung dinamis di fungsi get_truck_zone()
 
@@ -238,7 +238,9 @@ def main():
         payload = {
             "total_count": counter.total_count,
             "zone": counter.get_truck_zone(frame).tolist(),
-            "boxes": []
+            "boxes": [],
+            "frame_width": width,
+            "frame_height": height
         }
         
         # Data preparation (No OpenCV drawing)
