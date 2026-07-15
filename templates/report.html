@@ -246,32 +246,14 @@
         <div class="right-col" style="display: flex; flex-direction: column; gap: 20px;">
             <div class="glass-card">
                 <div class="kpi-grid">
-                    <div class="kpi-item">
+                    <div class="kpi-item" style="grid-column: span 3;">
                         <i class="ph-fill ph-package" style="color: #f59e0b;"></i>
                         <div class="lbl">Total Karung</div>
                         <div class="val" id="total-sacks">0</div>
                     </div>
-                    <div class="kpi-item">
-                        <i class="ph-fill ph-scales" style="color: #a855f7;"></i>
-                        <div class="lbl">Estimasi Berat</div>
-                        <div class="val"><span id="total-weight">0</span> Ton</div>
-                    </div>
-                    <div class="kpi-item" style="grid-column: span 2;">
-                        <i class="ph-fill ph-target" style="color: #10b981;"></i>
-                        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
-                            <div>
-                                <div class="lbl">Akurasi AI</div>
-                                <div class="val" id="accuracy">98.5%</div>
-                            </div>
-                            <div style="color: #f59e0b; font-size: 11px; line-height: 1.4; display: flex; align-items: flex-start; gap: 5px; max-width: 60%; text-align: right; justify-content: flex-end;">
-                                <span>*Akurasi belum 100% karena faktor distorsi cahaya, debu lensa, dan penumpukan karung di sabuk.</span>
-                                <i class="ph-bold ph-warning-circle" style="margin-top: 2px; font-size: 14px;"></i> 
-                            </div>
-                        </div>
-                    </div>
-                    <div class="kpi-item">
+                    <div class="kpi-item" style="grid-column: span 3;">
                         <i class="ph-fill ph-trend-up" style="color: #3b82f6;"></i>
-                        <div class="lbl">Rata-Rata (Avg/Min)</div>
+                        <div class="lbl">Rata-Rata (Avg/Jam)</div>
                         <div class="val" id="avg-rate">0.0</div>
                     </div>
                 </div>
@@ -315,18 +297,14 @@
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 14px; text-align: center;">
                 <thead>
                     <tr>
-                        <th style="border: 1px solid #000; padding: 8px; background: #f0f0f0;">Total Karung</th>
-                        <th style="border: 1px solid #000; padding: 8px; background: #f0f0f0;">Estimasi Tonase</th>
-                        <th style="border: 1px solid #000; padding: 8px; background: #f0f0f0;">Akurasi Model</th>
-                        <th style="border: 1px solid #000; padding: 8px; background: #f0f0f0;">Kecepatan (Avg/Min)</th>
+                        <th style="border: 1px solid #000; padding: 8px; background: #f0f0f0; width: 50%;">Total Karung</th>
+                        <th style="border: 1px solid #000; padding: 8px; background: #f0f0f0; width: 50%;">Kecepatan (Avg/Jam)</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td style="border: 1px solid #000; padding: 10px; font-weight: bold;" id="print-total">0</td>
-                        <td style="border: 1px solid #000; padding: 10px; font-weight: bold;" id="print-weight">0 Ton</td>
-                        <td style="border: 1px solid #000; padding: 10px; font-weight: bold;" id="print-acc">0%</td>
-                        <td style="border: 1px solid #000; padding: 10px; font-weight: bold;" id="print-rate">0.0</td>
+                        <td style="border: 1px solid #000; padding: 10px; font-weight: bold; font-size: 16px;" id="print-total">0</td>
+                        <td style="border: 1px solid #000; padding: 10px; font-weight: bold; font-size: 16px;" id="print-rate">0.0</td>
                     </tr>
                 </tbody>
             </table>

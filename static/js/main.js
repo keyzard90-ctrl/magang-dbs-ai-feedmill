@@ -108,9 +108,6 @@ document.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => totalSacksEl.classList.remove('pop-animation'), 400);
         }
         
-        const weightTon = (currentSackCount * 50) / 1000;
-        document.getElementById('total-weight').innerHTML = weightTon.toFixed(2);
-        
         if (currentSeconds > 0) {
             const mins = currentSeconds / 60;
             const avg = (currentSackCount / mins).toFixed(1);
@@ -300,13 +297,9 @@ window.generatePDF = function() {
 
     // 1. Transfer absolute stats data to print template directly from UI
     const totalCount = document.getElementById('total-sacks').innerText || '0';
-    const finalWeight = document.getElementById('total-weight').innerText || '0';
     const finalAvg = document.getElementById('avg-rate').innerText || '0.0';
 
     document.getElementById('print-total').innerText = totalCount;
-    document.getElementById('print-weight').innerText = finalWeight + " Ton";
-    // Accuracy is static, can grab from UI
-    document.getElementById('print-acc').innerText = document.getElementById('accuracy').innerText || '98%';
     document.getElementById('print-rate').innerText = finalAvg + " Karung/Menit";
 
     // 2. Capture chart as image
@@ -370,16 +363,15 @@ window.generateCSV = function() {
     csvContent += `Tanggal Sinkronisasi:,${todayStr}\n`;
     csvContent += "Lokasi Kamera:,Area Loading Dock A\n";
     csvContent += `Total Karung Terdeteksi:,${actualLogs.length} Karung\n`;
-    csvContent += `Estimasi Total Berat:,${((actualLogs.length * 50) / 1000).toFixed(2)} Ton\n`;
     csvContent += "\n"; // Blank line separator
     
     // Table Headers
-    csvContent += "ID Karung (Urutan),Waktu Deteksi (Detik),Format Waktu (Menit:Detik),Status Validasi\n";
+    csvContent += "ID Karung (Urutan),Waktu Deteksi (Detik),Format Waktu (Menit:Detik)\n";
     
     actualLogs.forEach(function(log) {
         const m = Math.floor(log.time / 60).toString().padStart(2, '0');
         const s = Math.floor(log.time % 60).toString().padStart(2, '0');
-        csvContent += `${log.id},${log.time.toFixed(2)},${m}:${s},Valid (+1)\n`;
+        csvContent += `${log.id},${log.time.toFixed(2)},${m}:${s}\n`;
     });
     
     const encodedUri = encodeURI(csvContent);
