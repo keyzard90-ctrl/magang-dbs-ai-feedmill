@@ -1,6 +1,7 @@
 let chartInstance = null;
 let currentThemeColor = '#3b82f6';
 let actualLogs = [];
+let streamStartTime = Date.now();
 
 document.addEventListener('DOMContentLoaded', () => {
     const img = document.getElementById('ai-video');
@@ -84,8 +85,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     ctx.fillText('+1', x1 + (w/2) - 15, y1 + (h/2));
                     
                     if (!loggedIds.has(box.id)) {
-                        addLog('', 0, box.id);
+                        let timeInSec = (Date.now() - streamStartTime) / 1000;
+                        addLog('', timeInSec, box.id);
                         loggedIds.add(box.id);
+                        
+                        actualLogs.push({ time: timeInSec, id: box.id });
+                        buildRealChart(actualLogs);
+                        buildHeatmap(actualLogs);
                     }
                 }
             });
@@ -223,6 +229,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const gradient = ctx.createLinearGradient(0, 0, 0, 200);
         gradient.addColorStop(0, 'rgba(59, 130, 246, 0.4)');
         gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+        
+        if (chartInstance) {
+            chartInstance.destroy();
+        }
 
         chartInstance = new Chart(ctx, {
             type: 'line',
@@ -282,10 +292,10 @@ window.generatePDF = function() {
     btn.innerHTML = '<i class="ph-bold ph-spinner" style="animation: spin 1s linear infinite;"></i> Memproses...';
     btn.disabled = true;
 
-    // 1. Transfer absolute stats data to print template (instead of relying on current playback time)
-    const totalCount = actualLogs ? actualLogs.length : 0;
-    const finalWeight = ((totalCount * 50) / 1000).toFixed(2);
-    const finalAvg = (totalCount / 12).toFixed(1); // Assuming 12 mins video
+    // 1. Transfer absolute stats data to print template directly from UI
+    const totalCount = document.getElementById('total-sacks').innerText || '0';
+    const finalWeight = document.getElementById('total-weight').innerText || '0';
+    const finalAvg = document.getElementById('avg-rate').innerText || '0.0';
 
     document.getElementById('print-total').innerText = totalCount;
     document.getElementById('print-weight').innerText = finalWeight + " Ton";

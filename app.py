@@ -1,5 +1,6 @@
 from flask import Flask, render_template, jsonify, send_file, request, session, redirect, url_for, Response, stream_with_context
 import os
+os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp"
 import webbrowser
 import cv2
 import time
@@ -12,6 +13,10 @@ VIDEO_PATH = "rtsp://admin:K0l0r4n123@10.38.250.21/cam/realmonitor?channel=1&sub
 
 # Global state untuk menyimpan data AI terbaru
 latest_ai_data = {}
+latest_frame = None
+
+import threading
+frame_lock = threading.Lock()
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -65,37 +70,22 @@ def report(date):
     else:
         return render_template('dummy.html', date=date)
 
-@app.route('/api/stats')
-def stats():
-    return jsonify({
-        'total_sacks': 165,
-        'accuracy': '90.0%',
-        'duration': '12:00',
-        'avg_per_min': round(165/12, 1)
-    })
-
-@app.route('/api/logs')
-def get_logs():
-    logs = []
-    try:
-        with open('actual_logs.txt', 'r') as f:
-            for line in f:
-                parts = line.strip().split('|')
-                if len(parts) < 2: continue
-                frame_str = parts[0].replace('Frame', '').strip()
-                karung_str = parts[1].split('MASUK')[0].replace('Karung #', '').strip()
-                frame = int(frame_str)
-                t_id = int(karung_str)
-                sec = round(frame / 25.0, 2)
-                logs.append({"time": sec, "id": t_id})
-    except:
-        pass
-    return jsonify(logs)
+import base64
 
 @app.route('/api/receive_data', methods=['POST'])
 def receive_data():
-    global latest_ai_data
-    latest_ai_data = request.json
+    global latest_ai_data, latest_frame
+    data = request.json
+    
+    if data and 'image' in data:
+        # Extract the raw image sent by main.py
+        img_data = base64.b64decode(data['image'])
+        with frame_lock:
+            latest_frame = img_data
+        # Remove image from payload so we don't overload the SSE stream
+        del data['image']
+        
+    latest_ai_data = data
     return jsonify({"status": "success"})
 
 @app.route('/api/stream_data')
@@ -108,23 +98,13 @@ def stream_data():
 
 def gen_frames():
     while True:
-        cap = cv2.VideoCapture(VIDEO_PATH)
-        if not cap.isOpened():
-            time.sleep(2)
-            continue
+        with frame_lock:
+            frame_bytes = latest_frame
             
-        while cap.isOpened():
-            success, frame = cap.read()
-            if not success:
-                break
-                
-            ret, buffer = cv2.imencode('.jpg', frame)
-            frame_bytes = buffer.tobytes()
+        if frame_bytes is not None:
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
-                   
-        cap.release()
-        time.sleep(1)
+        time.sleep(0.04)
 
 @app.route('/video_feed')
 def video_feed():
