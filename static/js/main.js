@@ -4,6 +4,13 @@ let actualLogs = [];
 let streamStartTime = Date.now();
 
 document.addEventListener('DOMContentLoaded', () => {
+    window.onerror = function(msg, url, line, col, error) {
+        // Log errors to the UI directly so the user can see them without DevTools
+        const errDiv = document.createElement('div');
+        errDiv.style.cssText = "position:fixed; top:10px; left:10px; z-index:9999; background:red; color:white; padding:10px;";
+        errDiv.innerText = "JS Error: " + msg + " at line " + line;
+        document.body.appendChild(errDiv);
+    };
     const img = document.getElementById('ai-video');
     const canvas = document.getElementById('ai-canvas');
     let ctx = null;
