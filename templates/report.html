@@ -6,6 +6,16 @@
     <title>Sack Counting AI Dashboard</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        // Ultimate unblocker: Runs in background from the very start. 
+        // If any CDN below hangs, this will still execute and unhide the body once parsed.
+        const emergencyUnblock = setInterval(() => {
+            if (document.body) {
+                document.body.classList.add("loaded");
+                clearInterval(emergencyUnblock);
+            }
+        }, 1000);
+    </script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Powerful PDF Library -->
@@ -325,7 +335,6 @@
         </div>
     </div>
 
-    <script>
         function toggleTheme() {
             const body = document.body;
             const icon = document.getElementById('theme-icon');
@@ -342,12 +351,6 @@
             if (window.renderChart) window.renderChart();
         }
     </script>
-    <script src="{{ url_for('static', filename='js/main.js') }}?v=14"></script>
-    <script>
-        // Use DOMContentLoaded and a timeout because MJPEG streams can block window.onload indefinitely
-        document.addEventListener("DOMContentLoaded", () => {
-            setTimeout(() => document.body.classList.add("loaded"), 500);
-        });
-    </script>
+    <script src="{{ url_for('static', filename='js/main.js') }}?v=18"></script>
 </body>
 </html>
