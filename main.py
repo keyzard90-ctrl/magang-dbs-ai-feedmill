@@ -3,6 +3,7 @@ import time
 import numpy as np
 import math
 from ultralytics import YOLO
+import requests
 
 # ==========================================
 # TRACKER MODULE
@@ -234,27 +235,35 @@ def main():
                 # Layer 3: Activate Badge for 20 frames
                 active_badges[t_id] = 20
         
-        # Bounding box & Badge rendering
+        payload = {
+            "total_count": counter.total_count,
+            "zone": counter.get_truck_zone(frame).tolist(),
+            "boxes": []
+        }
+        
+        # Data preparation (No OpenCV drawing)
         for sack in tracked_objects:
             t_id = sack['id']
             x1, y1, x2, y2 = map(int, sack['bbox'])
-            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
-            cv2.putText(frame, f"ID: {t_id}", (x1, y1 - 10), 
-
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
-                            
-            # Layer 3: Draw Neon Green '+1' Badge
+            
+            show_badge = False
             if t_id in active_badges:
                 if active_badges[t_id] > 0:
-                    cx = int((x1 + x2) / 2)
-                    cy = int((y1 + y2) / 2)
-                    cv2.putText(frame, "+1", (cx - 25, cy + 15), 
-                                cv2.FONT_HERSHEY_DUPLEX, 1.2, (0, 0, 255), 3)
+                    show_badge = True
                     active_badges[t_id] -= 1
                 else:
                     del active_badges[t_id]
-                            
-        frame = counter.draw(frame)
+                    
+            payload["boxes"].append({
+                "id": t_id,
+                "bbox": [x1, y1, x2, y2],
+                "badge": show_badge
+            })
+            
+        try:
+            requests.post("http://127.0.0.1:5001/api/receive_data", json=payload, timeout=0.05)
+        except Exception:
+            pass
         
         # Penulisan video dinonaktifkan untuk menghemat memori
         frame_count += 1
