@@ -43,6 +43,13 @@ document.addEventListener('DOMContentLoaded', () => {
         updateDashboardCounters(data.total_count, currentSeconds); 
         
         if (!ctx) return;
+        
+        // Dynamically resize canvas to match the video element at all times
+        if (canvas.width !== img.clientWidth || canvas.height !== img.clientHeight) {
+            canvas.width = img.clientWidth;
+            canvas.height = img.clientHeight;
+        }
+        
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
         if (data.frame_width) videoOriginalWidth = data.frame_width;
