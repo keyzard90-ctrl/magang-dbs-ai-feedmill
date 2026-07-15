@@ -191,7 +191,6 @@ class VectorCounter:
 # ==========================================
 # ----------------- CONFIGURATION -----------------
 VIDEO_INPUT = "Camera2_16-32-45_12menit.mp4"
-VIDEO_OUTPUT = "Hasil_Final_AI_12Menit.mp4"
 MODEL_PATH = "karung-dimuat-detection-di-feedmill-yolo26n-seg-200e.pt"
 
 # Konstanta Zona Kotak Bak Truk kini dihitung dinamis di fungsi get_truck_zone()
@@ -211,10 +210,6 @@ def main():
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = int(cap.get(cv2.CAP_PROP_FPS))
-    width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-    height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-    fourcc = cv2.VideoWriter_fourcc(*'avc1')
-    out = cv2.VideoWriter(VIDEO_OUTPUT, fourcc, fps, (width, height))
     
     frame_count = 0
     start_time = time.time()
@@ -261,7 +256,7 @@ def main():
                             
         frame = counter.draw(frame)
         
-        out.write(frame)
+        # Penulisan video dinonaktifkan untuk menghemat memori
         frame_count += 1
         
         if frame_count % 300 == 0:
@@ -269,13 +264,7 @@ def main():
             print(f"Processed {frame_count} frames... ({elapsed:.1f}s)")
             
     cap.release()
-    out.release()
-    print("Proses selesai. Video output disimpan sebagai:", VIDEO_OUTPUT)
-    
-    # Membuka video secara otomatis di macOS
-    import subprocess
-    print("Membuka video secara otomatis...")
-    subprocess.run(["open", VIDEO_OUTPUT])
+    print("Proses selesai.")
 
 if __name__ == "__main__":
     main()
