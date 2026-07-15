@@ -317,9 +317,9 @@ window.generatePDF = function() {
 
     const element = document.getElementById('print-template');
     
-    // Pause video
+    // Pause video - Not applicable for MJPEG img tag
     const vid = document.getElementById('ai-video');
-    if(vid) vid.pause();
+    // if(vid) vid.pause(); // Disabled to prevent TypeError
 
     // 3. Temporarily make the hidden template block display logic work for html2pdf
     element.parentElement.style.display = 'block';
