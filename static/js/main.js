@@ -292,6 +292,11 @@ window.generatePDF = function() {
     const originalText = btn.innerHTML;
     btn.innerHTML = '<i class="ph-bold ph-spinner" style="animation: spin 1s linear infinite;"></i> Memproses...';
     btn.disabled = true;
+    
+    // Format tanggal Indonesia
+    const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    const d = new Date();
+    const todayStr = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
 
     // 1. Transfer absolute stats data to print template directly from UI
     const totalCount = document.getElementById('total-sacks').innerText || '0';
@@ -321,7 +326,7 @@ window.generatePDF = function() {
 
     const opt = {
       margin:       0.5,
-      filename:     'Laporan_Resmi_Analitik_Karung_27_Juni_2026.pdf',
+      filename:     `Laporan_Resmi_Analitik_Karung_${todayStr.replace(/ /g, '_')}.pdf`,
       image:        { type: 'jpeg', quality: 1.0 },
       html2canvas:  { scale: 2, useCORS: true },
       jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
@@ -356,9 +361,13 @@ window.generateCSV = function() {
     
     let csvContent = "data:text/csv;charset=utf-8,";
     
+    const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    const d = new Date();
+    const todayStr = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+    
     // Header Metadata
     csvContent += "LAPORAN DATA MENTAH (RAW DATA) DETEKSI KARUNG AI\n";
-    csvContent += "Tanggal Sinkronisasi:,27 Juni 2026\n";
+    csvContent += `Tanggal Sinkronisasi:,${todayStr}\n`;
     csvContent += "Lokasi Kamera:,Area Loading Dock A\n";
     csvContent += `Total Karung Terdeteksi:,${actualLogs.length} Karung\n`;
     csvContent += `Estimasi Total Berat:,${((actualLogs.length * 50) / 1000).toFixed(2)} Ton\n`;
@@ -376,7 +385,7 @@ window.generateCSV = function() {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "Data_Mentah_Karung_27_Juni_2026.csv");
+    link.setAttribute("download", `Data_Mentah_Karung_${todayStr.replace(/ /g, '_')}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

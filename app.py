@@ -52,21 +52,28 @@ def ai_settings():
 def index():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
+        
+    today_str = datetime.date.today().strftime('%Y-%m-%d')
+    
+    # Generate Indonesian date format manually for safety
+    months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
+    today_label = f"{datetime.date.today().day} {months[datetime.date.today().month - 1]} {datetime.date.today().year}"
+    
     recent_dates = [
-        {"date": "2026-06-27", "label": "27 Juni 2026", "desc": "Video Durasi 12:00 Menit", "status": "Tersedia", "status_class": "status-badge-success"},
-        {"date": "2026-06-26", "label": "26 Juni 2026", "desc": "Video Durasi 08:30 Menit", "status": "Dummy Data", "status_class": "status-badge-warning"},
-        {"date": "2026-06-25", "label": "25 Juni 2026", "desc": "Video Durasi 10:15 Menit", "status": "Dummy Data", "status_class": "status-badge-warning"},
-        {"date": "2026-06-24", "label": "24 Juni 2026", "desc": "Video Durasi 11:45 Menit", "status": "Dummy Data", "status_class": "status-badge-warning"},
-        {"date": "2026-06-23", "label": "23 Juni 2026", "desc": "Video Durasi 09:20 Menit", "status": "Dummy Data", "status_class": "status-badge-warning"},
-        {"date": "2026-06-22", "label": "22 Juni 2026", "desc": "Video Durasi 12:00 Menit", "status": "Dummy Data", "status_class": "status-badge-warning"},
-        {"date": "2026-06-21", "label": "21 Juni 2026", "desc": "Video Durasi 07:10 Menit", "status": "Dummy Data", "status_class": "status-badge-warning"},
+        {"date": today_str, "label": "Hari Ini: " + today_label, "desc": "Live Stream Real-Time", "status": "Sedang Berjalan", "status_class": "status-badge-success"},
+        {"date": "2026-06-27", "label": "27 Juni 2026", "desc": "Arsip Rekaman", "status": "Tersedia", "status_class": "status-badge-warning"},
     ]
     return render_template('home.html', recent_dates=recent_dates)
 
 @app.route('/report/<date>')
 def report(date):
-    if date == '2026-06-27':
-        return render_template('report.html', date=date)
+    today_str = datetime.date.today().strftime('%Y-%m-%d')
+    months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
+    today_label = f"{datetime.date.today().day} {months[datetime.date.today().month - 1]} {datetime.date.today().year}"
+    
+    if date == today_str or date == '2026-06-27':
+        formatted_date = today_label if date == today_str else "27 Juni 2026"
+        return render_template('report.html', date=formatted_date)
     else:
         return render_template('dummy.html', date=date)
 
