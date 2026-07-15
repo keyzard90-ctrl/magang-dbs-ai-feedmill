@@ -44,10 +44,13 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (!ctx) return;
         
-        // Dynamically resize canvas to match the video element at all times
-        if (canvas.width !== img.clientWidth || canvas.height !== img.clientHeight) {
-            canvas.width = img.clientWidth;
-            canvas.height = img.clientHeight;
+        // Dynamically resize canvas to match the video element's container at all times
+        const parentW = img.parentElement.clientWidth;
+        const parentH = img.parentElement.clientHeight;
+        
+        if (parentW > 0 && parentH > 0 && (canvas.width !== parentW || canvas.height !== parentH)) {
+            canvas.width = parentW;
+            canvas.height = parentH;
         }
         
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -113,14 +116,6 @@ document.addEventListener('DOMContentLoaded', () => {
             totalSacksEl.innerHTML = currentSackCount;
             totalSacksEl.classList.add('pop-animation');
             setTimeout(() => totalSacksEl.classList.remove('pop-animation'), 400);
-        }
-        
-        if (currentSeconds > 0) {
-            const mins = currentSeconds / 60;
-            const avg = (currentSackCount / mins).toFixed(1);
-            document.getElementById('avg-rate').textContent = avg;
-        } else {
-            document.getElementById('avg-rate').textContent = '0.0';
         }
     }
     
@@ -304,10 +299,7 @@ window.generatePDF = function() {
 
     // 1. Transfer absolute stats data to print template directly from UI
     const totalCount = document.getElementById('total-sacks').innerText || '0';
-    const finalAvg = document.getElementById('avg-rate').innerText || '0.0';
-
     document.getElementById('print-total').innerText = totalCount;
-    document.getElementById('print-rate').innerText = finalAvg + " Karung/Menit";
 
     // 2. Capture chart as image
     const chartCanvas = document.getElementById('distributionChart');
