@@ -1,9 +1,15 @@
+import os
+os.environ["OPENCV_FFMPEG_CAPTURE_OPTIONS"] = "rtsp_transport;tcp"
 import cv2
 import time
 import numpy as np
 import math
 from ultralytics import YOLO
 import requests
+import base64
+
+# Use a session to prevent connection exhaustion from hundreds of POSTs per second
+http_session = requests.Session()
 
 # ==========================================
 # TRACKER MODULE
@@ -235,12 +241,17 @@ def main():
                 # Layer 3: Activate Badge for 20 frames
                 active_badges[t_id] = 20
         
+        # Send raw frame to app.py to avoid double RTSP connection
+        _, buffer = cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 75])
+        raw_frame_b64 = base64.b64encode(buffer).decode('utf-8')
+        
         payload = {
             "total_count": counter.total_count,
             "zone": counter.get_truck_zone(frame).tolist(),
             "boxes": [],
             "frame_width": width,
-            "frame_height": height
+            "frame_height": height,
+            "image": raw_frame_b64
         }
         
         # Data preparation (No OpenCV drawing)
@@ -263,7 +274,7 @@ def main():
             })
             
         try:
-            requests.post("http://127.0.0.1:5001/api/receive_data", json=payload, timeout=0.05)
+            http_session.post("http://127.0.0.1:5001/api/receive_data", json=payload, timeout=0.05)
         except Exception:
             pass
         

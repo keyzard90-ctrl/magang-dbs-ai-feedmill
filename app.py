@@ -100,20 +100,26 @@ def receive_data():
 @app.route('/api/stream_data')
 def stream_data():
     def generate():
-        while True:
-            yield f"data: {json.dumps(latest_ai_data)}\n\n"
-            time.sleep(0.04) # ~25 FPS
+        try:
+            while True:
+                yield f"data: {json.dumps(latest_ai_data)}\n\n"
+                time.sleep(0.04) # ~25 FPS
+        except GeneratorExit:
+            pass
     return Response(stream_with_context(generate()), mimetype='text/event-stream')
 
 def gen_frames():
-    while True:
-        with frame_lock:
-            frame_bytes = latest_frame
-            
-        if frame_bytes is not None:
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
-        time.sleep(0.04)
+    try:
+        while True:
+            with frame_lock:
+                frame_bytes = latest_frame
+                
+            if frame_bytes is not None:
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+            time.sleep(0.04)
+    except GeneratorExit:
+        pass
 
 @app.route('/video_feed')
 def video_feed():
