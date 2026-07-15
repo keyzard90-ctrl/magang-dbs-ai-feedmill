@@ -39,7 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = JSON.parse(event.data);
         if (!data || Object.keys(data).length === 0) return;
         
-        updateDashboardCounters(data.total_count, 0); 
+        let currentSeconds = (Date.now() - streamStartTime) / 1000;
+        updateDashboardCounters(data.total_count, currentSeconds); 
         
         if (!ctx) return;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
