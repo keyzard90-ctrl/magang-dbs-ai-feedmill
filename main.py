@@ -7,9 +7,20 @@ import math
 from ultralytics import YOLO
 import requests
 import base64
+import threading
 
 # Use a session to prevent connection exhaustion from hundreds of POSTs per second
 http_session = requests.Session()
+
+is_sending = False
+def send_payload_async(payload):
+    global is_sending
+    try:
+        http_session.post("http://127.0.0.1:5001/api/receive_data", json=payload, timeout=0.5)
+    except Exception:
+        pass
+    finally:
+        is_sending = False
 
 # ==========================================
 # TRACKER MODULE
@@ -273,10 +284,10 @@ def main():
                 "badge": show_badge
             })
             
-        try:
-            http_session.post("http://127.0.0.1:5001/api/receive_data", json=payload, timeout=0.05)
-        except Exception:
-            pass
+        global is_sending
+        if not is_sending:
+            is_sending = True
+            threading.Thread(target=send_payload_async, args=(payload,), daemon=True).start()
         
         # Penulisan video dinonaktifkan untuk menghemat memori
         frame_count += 1
