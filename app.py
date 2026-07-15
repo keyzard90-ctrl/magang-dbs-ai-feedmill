@@ -82,18 +82,19 @@ import base64
 @app.route('/api/receive_data', methods=['POST'])
 def receive_data():
     global latest_ai_data, latest_frame
-    data = request.json
-    
-    if data and 'image' in data:
-        # Extract the raw image sent by main.py
-        img_data = base64.b64decode(data['image'])
-        with frame_lock:
-            latest_frame = img_data
-        # Remove image from payload so we don't overload the SSE stream
-        del data['image']
-        
-    latest_ai_data = data
-    return jsonify({"status": "success"})
+    try:
+        data = request.json
+        if data and 'image' in data:
+            img_data = base64.b64decode(data['image'])
+            with frame_lock:
+                latest_frame = img_data
+            del data['image']
+            
+        latest_ai_data = data
+        return jsonify({"status": "success"})
+    except Exception as e:
+        print("ERROR in receive_data:", str(e))
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 @app.route('/api/stream_data')
 def stream_data():
