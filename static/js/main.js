@@ -195,14 +195,14 @@ document.addEventListener('DOMContentLoaded', () => {
     function buildRealChart(logs) {
         const ctx = document.getElementById('distributionChart').getContext('2d');
         
-        // Group logic: we have a 12 min video, group by minute (0-11)
-        let data = new Array(12).fill(0);
+        // Group logic: we have an 8-hour shift, group by hour (0-7)
+        let data = new Array(8).fill(0);
         logs.forEach(log => {
-            let minuteIndex = Math.floor(log.time / 60);
-            if(minuteIndex < 12) {
-                data[minuteIndex]++;
+            let hourIndex = Math.floor(log.time / 3600); // 3600 seconds = 1 hour
+            if(hourIndex < 8) {
+                data[hourIndex]++;
             } else {
-                data[11]++; // fallback for anything over 12 mins
+                data[7]++; // fallback for anything over 8 hours
             }
         });
         
@@ -222,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let avgGap = validGaps > 0 ? (totalGap / validGaps).toFixed(1) : "0.0";
         
         const peakEl = document.getElementById('peak-minute');
-        if(peakEl) peakEl.innerText = `Menit Tersibuk: Menit ke-${peakMinute} (${maxCount} karung)`;
+        if(peakEl) peakEl.innerText = `Jam Tersibuk: Jam ke-${peakMinute} (${maxCount} karung)`;
         
         const gapEl = document.getElementById('avg-gap');
         if(gapEl) gapEl.innerText = `Rata-rata Jeda: ${avgGap} Detik/Karung`;
@@ -238,7 +238,7 @@ document.addEventListener('DOMContentLoaded', () => {
         chartInstance = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['Mnt 1', 'Mnt 2', 'Mnt 3', 'Mnt 4', 'Mnt 5', 'Mnt 6', 'Mnt 7', 'Mnt 8', 'Mnt 9', 'Mnt 10', 'Mnt 11', 'Mnt 12'],
+                labels: ['Jam ke-1', 'Jam ke-2', 'Jam ke-3', 'Jam ke-4', 'Jam ke-5', 'Jam ke-6', 'Jam ke-7', 'Jam ke-8'],
                 datasets: [{
                     label: 'Karung Masuk',
                     data: data,
@@ -259,8 +259,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 onClick: (e, activeEls) => {
                     if (activeEls.length > 0) {
                         const idx = activeEls[0].index;
-                        // Seek video to the beginning of that minute
-                        const targetTime = idx * 60;
+                        // Seek video to the beginning of that hour
+                        const targetTime = idx * 3600;
                         video.currentTime = targetTime;
                         video.play();
                     }
