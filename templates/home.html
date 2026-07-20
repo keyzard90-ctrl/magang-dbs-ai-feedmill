@@ -617,19 +617,13 @@
     <div class="modal-overlay" id="modal-target">
         <div class="modal-content">
             <button class="modal-close" onclick="closeModal('modal-target')"><i class="ph-bold ph-x"></i></button>
-            <h3 class="modal-title"><i class="ph-fill ph-scan"></i> Multi-Model Detection Target</h3>
-            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 15px;">Sistem Feedmill menggunakan 2 model AI terpisah untuk deteksi simultan.</p>
+            <h3 class="modal-title"><i class="ph-fill ph-scan"></i> Single-Model Detection Target</h3>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 15px;">Sistem Feedmill menggunakan model AI khusus untuk melacak presisi tinggi.</p>
             
             <div style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; padding: 15px; margin-bottom: 15px;">
                 <div style="font-weight: 600; font-size: 14px; margin-bottom: 8px; color: #10b981;"><i class="ph-bold ph-package"></i> Target 1: Karung Pakan</div>
                 <div style="font-size: 11px; color: var(--text-secondary); word-wrap: break-word;">File: karung-dimuat-detection...seg-200e.pt</div>
                 <div style="font-size: 12px; margin-top: 5px;">Model <b>Segmentation</b> terlatih 200 Epochs khusus mendeteksi instance karung secara presisi.</div>
-            </div>
-
-            <div style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.05); border-radius: 10px; padding: 15px;">
-                <div style="font-weight: 600; font-size: 14px; margin-bottom: 8px; color: #3b82f6;"><i class="ph-bold ph-truck"></i> Target 2: Truk Ekspedisi</div>
-                <div style="font-size: 11px; color: var(--text-secondary); word-wrap: break-word;">File: truck-detector-feedmill.pt</div>
-                <div style="font-size: 12px; margin-top: 5px;">Model <b>Object Detection</b> untuk memantau keberadaan truk di area <i>loading dock</i>.</div>
             </div>
         </div>
     </div>

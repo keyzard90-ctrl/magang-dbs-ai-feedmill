@@ -130,7 +130,6 @@ class VectorCounter:
 def main():
     print("Loading models...")
     sack_tracker = YOLOTracker("karung-dimuat-detection-di-feedmill-yolo26n-seg-200e.pt")
-    truck_model = YOLO("truck-detector-feedmill.pt")
     
     counter = VectorCounter()
     
@@ -158,17 +157,7 @@ def main():
         if not ret:
             break
             
-        # 1. Truck Detection (New Source)
-        truck_results = truck_model(frame, conf=0.5, verbose=False)
-        if truck_results and len(truck_results) > 0 and truck_results[0].boxes is not None:
-            boxes = truck_results[0].boxes.xyxy.cpu().numpy()
-            for bbox in boxes:
-                tx1, ty1, tx2, ty2 = map(int, bbox)
-                cv2.rectangle(frame, (tx1, ty1), (tx2, ty2), (255, 50, 50), 4) # Blue box for truck
-                cv2.putText(frame, "TRUCK [AI]", (tx1, max(30, ty1 - 10)), 
-                            cv2.FONT_HERSHEY_DUPLEX, 1.0, (255, 50, 50), 3)
-            
-        # 2. Sack Tracking & Counting (Original Source)
+        # 1. Sack Tracking & Counting (Original Source)
         tracked_objects, _ = sack_tracker.track(frame, line_y=560, conf_base=0.30, conf_high=0.55)
         events = counter.update(tracked_objects, frame)
         
