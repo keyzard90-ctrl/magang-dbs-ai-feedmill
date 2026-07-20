@@ -99,10 +99,10 @@ class VectorCounter:
     def get_truck_zone(self, frame):
         h, w = frame.shape[:2]
         truck_zone = np.array([
-            [int(w * 0.35), 0],                 # Kiri atas (mentok ujung atas kamera)
-            [int(w * 0.72), 0],                 # Kanan atas (mentok ujung atas kamera)
-            [int(w * 0.72), int(h * 0.55)],     # Kanan bawah (tetap)
-            [int(w * 0.35), int(h * 0.55)]      # Kiri bawah (tetap)
+            [int(w * 0.33), 0],                 # Kiri atas (mentok ujung atas kamera)
+            [int(w * 0.74), 0],                 # Kanan atas (mentok ujung atas kamera)
+            [int(w * 0.74), int(h * 0.58)],     # Kanan bawah (tetap)
+            [int(w * 0.33), int(h * 0.58)]      # Kiri bawah (tetap)
         ], np.int32)
         return truck_zone
 
@@ -121,7 +121,7 @@ class VectorCounter:
                 continue
                 
             center_x = int((bbox[0] + bbox[2]) / 2)
-            center_y = int(bbox[1] + (bbox[3] - bbox[1]) * 0.7) # Evaluasi agak ke bawah (lebih stabil mengikuti beban jatuh)
+            center_y = int(bbox[1] + (bbox[3] - bbox[1]) * 0.6) # Evaluasi agak ke bawah (lebih stabil mengikuti beban jatuh)
             
             # Evaluasi titik pusat
             is_inside = cv2.pointPolygonTest(truck_zone, (center_x, center_y), False) >= 0
@@ -142,14 +142,14 @@ class VectorCounter:
                     self.track_states[track_id]['frames_outside'] = frames_outside + 1
 
                 if not was_inside and is_inside:
-                    # Syarat 1: Umur di luar zona minimal 5 frame
-                    if frames_outside >= 5:
-                        # Syarat 2: Spatial-Temporal Suppression (Jarak < 100px dalam 15 frame)
+                    # Syarat 1: Umur di luar zona minimal 3 frame
+                    if frames_outside >= 3:
+                        # Syarat 2: Spatial-Temporal Suppression
                         is_duplicate = False
                         for drop in self.recent_drops:
-                            if (self.frame_count - drop['frame']) <= 15:
+                            if (self.frame_count - drop['frame']) <= 12:
                                 dist = math.hypot(center_x - drop['x'], center_y - drop['y'])
-                                if dist < 100:
+                                if dist < 70:
                                     is_duplicate = True
                                     break
                                     
@@ -224,7 +224,7 @@ def main():
         if not ret:
             break
             
-        tracked_objects, raw_result = tracker.track(frame, line_y=560, conf_base=0.30, conf_high=0.55)
+        tracked_objects, raw_result = tracker.track(frame, line_y=560, conf_base=0.25, conf_high=0.45)
         
         events = counter.update(tracked_objects, frame)
         
