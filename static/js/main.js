@@ -39,6 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let loggedIds = new Set();
     
     if (logList) addLog('AI System Online. Menjalankan Live Stream, memindai area feedmill...', 0);
+    buildRealChart([]); // Inisialisasi awal grafik agar tidak kosong
+
 
     const evtSource = new EventSource('/api/stream_data');
     evtSource.onmessage = function(event) {
@@ -115,6 +117,56 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     };
+
+    // --- NEW: ARCHIVE SYNC LOGIC ---
+    const vid = document.getElementById('ai-video');
+    if (vid && vid.tagName === 'VIDEO') {
+        let eventsData = [];
+        let nextEventIdx = 0;
+
+        fetch('/static/data/events.json')
+            .then(res => res.json())
+            .then(data => {
+                eventsData = data;
+                console.log("Archive events loaded for perfect sync.");
+            })
+            .catch(err => console.error("Error loading events:", err));
+
+        vid.addEventListener('timeupdate', () => {
+            const currentTime = vid.currentTime;
+            
+            // Allow seeking backwards to reset
+            if (nextEventIdx > 0 && currentTime < eventsData[nextEventIdx - 1].time) {
+                nextEventIdx = 0;
+                loggedIds.clear();
+                actualLogs = [];
+                const logList = document.getElementById('activity-log');
+                if(logList) logList.innerHTML = '';
+                updateDashboardCounters(0, 0);
+            }
+
+            let logsUpdated = false;
+            while (nextEventIdx < eventsData.length && eventsData[nextEventIdx].time <= currentTime) {
+                const ev = eventsData[nextEventIdx];
+                updateDashboardCounters(ev.id, currentTime);
+                
+                if (!loggedIds.has(ev.id)) {
+                    addLog('', currentTime, ev.id);
+                    loggedIds.add(ev.id);
+                    
+                    actualLogs.push({ time: currentTime, id: ev.id });
+                    logsUpdated = true;
+                }
+                nextEventIdx++;
+            }
+            
+            if (logsUpdated) {
+                buildRealChart(actualLogs);
+                buildHeatmap(actualLogs);
+            }
+        });
+    }
+    // --- END ARCHIVE SYNC LOGIC ---
     
     function updateDashboardCounters(currentSackCount, currentSeconds) {
         const totalSacksEl = document.getElementById('total-sacks');
@@ -202,9 +254,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const ctx = document.getElementById('distributionChart').getContext('2d');
         
         // Group logic: we have an 8-hour shift, group by hour (0-7)
-        let data = new Array(8).fill(0);
+        // First determine what the current max hour is
+        let maxHour = 0;
         logs.forEach(log => {
-            let hourIndex = Math.floor(log.time / 3600); // 3600 seconds = 1 hour
+            let h = Math.floor(log.time / 3600);
+            if (h > maxHour) maxHour = h;
+        });
+
+        // Initialize only up to maxHour with 0, and future hours with null
+        let data = new Array(8).fill(null);
+        for(let i=0; i<=maxHour && i<8; i++) {
+            data[i] = 0;
+        }
+
+        logs.forEach(log => {
+            let hourIndex = Math.floor(log.time / 3600);
             if(hourIndex < 8) {
                 data[hourIndex]++;
             } else {
@@ -233,6 +297,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const gapEl = document.getElementById('avg-gap');
         if(gapEl) gapEl.innerText = `Rata-rata Jeda: ${avgGap} Detik/Karung`;
         
+        let finalLabels = ['Mulai', 'Jam ke-1', 'Jam ke-2', 'Jam ke-3', 'Jam ke-4', 'Jam ke-5', 'Jam ke-6', 'Jam ke-7', 'Jam ke-8'];
+        let finalData = [0, ...data];
+
         const gradient = ctx.createLinearGradient(0, 0, 0, 200);
         gradient.addColorStop(0, 'rgba(59, 130, 246, 0.4)');
         gradient.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
@@ -244,10 +311,10 @@ document.addEventListener('DOMContentLoaded', () => {
         chartInstance = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['Jam ke-1', 'Jam ke-2', 'Jam ke-3', 'Jam ke-4', 'Jam ke-5', 'Jam ke-6', 'Jam ke-7', 'Jam ke-8'],
+                labels: finalLabels,
                 datasets: [{
                     label: 'Karung Masuk',
-                    data: data,
+                    data: finalData,
                     borderColor: currentThemeColor,
                     backgroundColor: gradient,
                     borderWidth: 3,
@@ -311,6 +378,15 @@ window.generatePDF = function() {
     // Inject the real-time date directly to the print template
     const printDate = document.getElementById('print-date');
     if (printDate) printDate.innerText = ': ' + todayStr;
+
+    // Inject Time Range
+    const printTimeRange = document.getElementById('print-time-range');
+    if (printTimeRange) {
+        const start = new Date(streamStartTime);
+        const sTime = start.getHours().toString().padStart(2, '0') + ':' + start.getMinutes().toString().padStart(2, '0');
+        const eTime = d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+        printTimeRange.innerText = `: ${sTime} - ${eTime} WIB`;
+    }
 
     // 2. Capture chart as image
     const chartCanvas = document.getElementById('distributionChart');

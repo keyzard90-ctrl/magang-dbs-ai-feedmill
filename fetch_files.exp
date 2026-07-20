@@ -1,0 +1,20 @@
+#!/usr/bin/expect -f
+set timeout 15
+spawn scp -o StrictHostKeyChecking=no jetson@192.168.192.96:~/keyy/app.py jetson_app.py
+expect {
+    "yes/no" { send "yes\r"; exp_continue }
+    "*?assword:*" { send "jetson\r"; exp_continue }
+    eof
+}
+spawn scp -o StrictHostKeyChecking=no jetson@192.168.192.96:~/keyy/main.py jetson_main.py
+expect {
+    "yes/no" { send "yes\r"; exp_continue }
+    "*?assword:*" { send "jetson\r"; exp_continue }
+    eof
+}
+spawn scp -o StrictHostKeyChecking=no jetson@192.168.192.96:~/keyy/static/js/main.js jetson_main.js
+expect {
+    "yes/no" { send "yes\r"; exp_continue }
+    "*?assword:*" { send "jetson\r"; exp_continue }
+    eof
+}

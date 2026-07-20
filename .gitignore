@@ -11,17 +11,23 @@ env/
 venv/
 .env
 
-# Large Media Files (Video & AI Models)
+# Large Media Files (Video)
 *.mp4
 *.avi
 *.mkv
-*.pt
-*.onnx
-*.weights
 
-# Other media
+# Ignore Raw Datasets (Terlalu besar untuk GitHub)
+truck-detector-feedmill/
+truck-detector-training/
+
+# Allow specific image assets (tapi blokir gambar di luar static)
 *.jpg
 *.png
+!static/img/*.jpg
+!static/img/*.png
+!*.pt
+!*.onnx
+!*.weights
 
 # Ignore previous temp / debug outputs
 output/

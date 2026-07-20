@@ -61,22 +61,25 @@ def index():
     today_label = f"{datetime.date.today().day} {months[datetime.date.today().month - 1]} {datetime.date.today().year}"
     
     recent_dates = [
-        {"date": today_str, "label": "Hari Ini: " + today_label, "desc": "Live Stream Real-Time", "status": "Sedang Berjalan", "status_class": "status-badge-success"},
+        {"date": today_str, "label": "Hari Ini: " + today_label, "desc": "Live Stream Real-Time", "status": "Tersedia", "status_class": "status-badge-success"},
         {"date": "2026-06-27", "label": "27 Juni 2026", "desc": "Arsip Rekaman", "status": "Tersedia", "status_class": "status-badge-warning"},
     ]
-    return render_template('home.html', recent_dates=recent_dates)
+    return render_template('home.html', recent_dates=recent_dates, today_str=today_str)
 
 @app.route('/report/<date>')
 def report(date):
     today_str = datetime.date.today().strftime('%Y-%m-%d')
     months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
-    today_label = f"{datetime.date.today().day} {months[datetime.date.today().month - 1]} {datetime.date.today().year}"
-    
-    if date == today_str or date == '2026-06-27':
-        formatted_date = today_label if date == today_str else "27 Juni 2026"
-        return render_template('report.html', date=formatted_date)
-    else:
-        return render_template('dummy.html', date=date)
+    try:
+        # Parse YYYY-MM-DD
+        d = datetime.datetime.strptime(date, '%Y-%m-%d')
+        formatted_date = f"{d.day} {months[d.month - 1]} {d.year}"
+    except:
+        formatted_date = date
+        
+    is_live = (date == today_str)
+        
+    return render_template('report.html', date=formatted_date, is_live=is_live)
 
 import base64
 
@@ -110,6 +113,10 @@ def stream_data():
 
 def gen_frames():
     try:
+        # Wait for the first frame so Safari doesn't mark the stream as broken
+        while latest_frame is None:
+            time.sleep(0.1)
+            
         while True:
             with frame_lock:
                 frame_bytes = latest_frame

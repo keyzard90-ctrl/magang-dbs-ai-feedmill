@@ -3,6 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Laporan Analitik lengkap dari sistem AI Feedmill untuk pelacakan dan penghitungan karung otomatis.">
+    <meta name="keywords" content="Laporan AI, Feedmill, Dashboard, Analitik, Computer Vision, YOLO">
+    <meta name="author" content="Enterprise Feedmill">
+    <meta name="theme-color" content="#0f172a">
     <title>Sack Counting AI Dashboard</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎯</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -25,9 +29,9 @@
             --bg-dark: #0f172a; --theme-color: #3b82f6; --text-main: #f8fafc; --text-secondary: #94a3b8;
             --card-bg: rgba(30, 41, 59, 0.7); --card-border: rgba(255, 255, 255, 0.1);
         }
-        body {
-            margin: 0; font-family: 'Inter', sans-serif;
-            color: var(--text-main); height: 100vh; overflow: hidden;
+        body { 
+            background-color: var(--bg-dark); font-family: 'Inter', sans-serif; 
+            color: var(--text-main);
             display: flex; flex-direction: column; transition: color 0.3s;
         }
 
@@ -103,8 +107,12 @@
         .btn-export:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(239, 68, 68, 0.6); }
 
         .dashboard-layout {
-            display: grid; grid-template-columns: 2fr 1fr; gap: 20px;
-            padding: 20px 40px; height: calc(100vh - 75px); overflow-y: auto;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            padding: 20px 40px; 
+            height: calc(100vh - 75px); 
+            overflow-y: auto;
         }
         
         .glass-card {
@@ -137,6 +145,17 @@
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+        
+        /* Responsive Media Queries */
+        @media (max-width: 1024px) {
+            .dashboard-layout { grid-template-columns: 1fr; overflow-y: auto; padding: 20px; height: auto; }
+            .top-navbar { flex-direction: column; gap: 15px; align-items: flex-start; }
+            .top-navbar div { flex-wrap: wrap; }
+            .btn-back { margin-right: 0; margin-bottom: 10px; }
+        }
+        @media (max-width: 768px) {
+            .kpi-grid { grid-template-columns: 1fr; }
+        }
     </style>
     <style>
         body { opacity: 0; transition: opacity 0.5s ease-in; }
@@ -150,7 +169,7 @@
         <div class="nav-left">
             <a href="/" class="btn-back"><i class="ph-bold ph-arrow-left"></i> Dashboard</a>
             <i class="ph-fill ph-aperture"></i>
-            <h2>Laporan Analitik Karung AI | {{ date }}</h2>
+            <h2 id="live-date-title">Laporan Analitik Karung AI | Menghitung...</h2>
         </div>
         <div style="display: flex; gap: 10px; align-items: center;">
             <button onclick="toggleTheme()" style="background:transparent; border:none; color:var(--text-main); font-size: 24px; cursor: pointer; margin-right: 15px;"><i class="ph-fill ph-sun" id="theme-icon"></i></button>
@@ -160,10 +179,10 @@
     </header>
 
     <main class="dashboard-layout" id="pdf-content">
-        <!-- Kolom Kiri: Video & Chart -->
-        <div class="left-col" style="display: flex; flex-direction: column; gap: 20px;">
-            <div class="glass-card">
-                <div class="panel-header">
+        <!-- Kolom Kiri: Video -->
+        <section class="left-col" style="display: flex; flex-direction: column; gap: 20px;">
+            <article class="glass-card">
+                <header class="panel-header">
                     <h3><i class="ph-fill ph-video-camera"></i> Arsip Rekaman Video</h3>
                     <div style="display: flex; gap: 10px; align-items: center;">
                         <span style="font-size: 12px; font-weight: 600; color: var(--text-secondary);">Speed:</span>
@@ -176,28 +195,14 @@
                         </select>
                         <span class="badge">Model: YOLOv8 Segment</span>
                     </div>
-                </div>
+                </header>
                 <div class="video-wrapper" style="position: relative;">
-                    <!-- Futuristic Video Overlays Grouped -->
-                    <div id="ai-hud">
-                        <div class="scanner-line"></div>
-                        <div class="frame-bracket frame-tl"></div>
-                        <div class="frame-bracket frame-tr"></div>
-                        <div class="frame-bracket frame-bl"></div>
-                        <div class="frame-bracket frame-br"></div>
-                        
-                        <div style="position: absolute; top: 20px; left: 20px; z-index: 5; display: flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.6); padding: 5px 12px; border-radius: 4px; border: 1px solid rgba(16,185,129,0.4); font-family: monospace; font-size: 11px; color: #10b981; backdrop-filter: blur(4px);">
-                            <div class="pulse-dot" style="width: 8px; height: 8px; background: #10b981; border-radius: 50%;"></div>
-                            AI VISION ACTIVE
-                        </div>
-                        
-                        <div style="position: absolute; top: 20px; right: 20px; z-index: 5; font-family: monospace; font-size: 11px; color: #60a5fa; text-shadow: 0 0 5px #60a5fa; background: rgba(0,0,0,0.5); padding: 4px 8px; border-radius: 4px;">
-                            TRACKING: ON | CONF: 90%
-                        </div>
-                    </div>
-                    
-                    <div style="position: relative; width: 100%;">
-                        <img id="ai-video" src="/video_feed" style="width: 100%; height: auto; display: block;" alt="Live Stream">
+                    <div style="position: relative; width: 100%; padding-bottom: 56.25%; background: #000; overflow: hidden; border-radius: 8px;">
+                        {% if is_live %}
+                            <img id="ai-video" src="/video_feed" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; display: block;" alt="Live Stream">
+                        {% else %}
+                            <video id="ai-video" src="{{ url_for('static', filename='video/Hasil_Final_AI_13Menit_Compressed.mp4') }}" autoplay controls muted style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; display: block;"></video>
+                        {% endif %}
                         <canvas id="ai-canvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10;"></canvas>
                     </div>
                 </div>
@@ -210,35 +215,45 @@
                         <span id="video-duration">12:00</span>
                     </div>
                     <div class="video-heatmap" id="video-heatmap" style="width: 100%; height: 14px; background: rgba(0,0,0,0.5); border-radius: 6px; position: relative; overflow: hidden; cursor: pointer; border: 1px solid rgba(255,255,255,0.1); box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);">
-                        <!-- Detections injected via JS -->
                         <div id="heatmap-progress" style="position: absolute; top:0; left:0; height: 100%; width: 0%; background: rgba(59,130,246,0.2); pointer-events: none;"></div>
                         <div id="heatmap-indicator" style="position: absolute; top:-2px; left:0; width: 3px; height: 18px; background: #fff; box-shadow: 0 0 8px #fff; pointer-events: none; border-radius: 2px; z-index: 10;"></div>
                     </div>
                 </div>
-                
-                <!-- Modern Toggles Panel -->
-                <div style="display: flex; gap: 20px; align-items: center; justify-content: center; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
-                    <div style="display:flex; align-items:center; gap:8px;" title="Tampilkan/Sembunyikan AI Vision Scanner">
-                        <span style="font-size: 11px; font-weight:600; color:var(--text-secondary); text-transform:uppercase;">HUD Scanner</span>
-                        <label class="modern-toggle">
-                            <input type="checkbox" id="toggle-hud" checked onchange="document.getElementById('ai-hud').style.display = this.checked ? 'block' : 'none'">
-                            <span class="slider"></span>
-                        </label>
-                    </div>
-                </div>
-            </div>
+            </article>
+        </section>
 
-            <div class="glass-card" style="flex-grow: 1; display: flex; flex-direction: column;">
-                <div class="panel-header">
+        <!-- Kolom Kanan: KPI & Logs -->
+        <aside class="right-col" style="display: flex; flex-direction: column; gap: 20px;">
+            <article class="glass-card">
+                <div class="kpi-item">
+                    <i class="ph-fill ph-package" style="color: #f59e0b; text-align: center;"></i>
+                    <div class="lbl" style="text-align: center;">Total Karung Terdeteksi</div>
+                    <div class="val" id="total-sacks" style="text-align: center; font-size: 32px;">0</div>
+                </div>
+
+                <div class="panel-header" style="margin-top: 15px;">
+                    <h3><i class="ph-fill ph-list-dashes"></i> Log Deteksi Sinkron</h3>
+                    <input type="text" id="log-search" placeholder="Cari ID Karung..." style="background: rgba(0,0,0,0.5); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 5px; outline: none; font-size: 12px; width: 120px;" onkeyup="filterLogs()">
+                </div>
+                <div class="log-container" id="activity-log" style="height: 380px;">
+                    <!-- JS will insert logs here -->
+                </div>
+            </article>
+        </aside>
+
+        <!-- Bawah: Grafik -->
+        <section class="bottom-row" style="grid-column: 1 / -1; display: flex; flex-direction: column;">
+            <article class="glass-card" style="flex-grow: 1; display: flex; flex-direction: column;">
+                <header class="panel-header">
                     <h3><i class="ph-fill ph-chart-bar"></i> Detection Timeline (Karung/Jam)</h3>
                     <span class="badge" style="background: rgba(16, 185, 129, 0.2); color: #10b981; border-color: rgba(16, 185, 129, 0.4);">
                         <i class="ph-fill ph-check-circle"></i> Laporan Shift Harian
                     </span>
-                </div>
-                <div id="chart-container" style="flex-grow: 1; position: relative; min-height: 200px;">
+                </header>
+                <div id="chart-container" style="position: relative; height: 250px; width: 100%;">
                     <canvas id="distributionChart"></canvas>
                 </div>
-                <!-- SMART INSIGHTS (Derived purely from data) -->
+                <!-- SMART INSIGHTS -->
                 <div class="smart-insights" style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed var(--card-border); display: flex; gap: 20px; font-size: 13px; color: var(--text-secondary); align-items: center; justify-content: center;">
                     <div style="display:flex; align-items:center; gap:5px;" title="Menit dengan intensitas deteksi karung tertinggi">
                         <i class="ph-fill ph-fire" style="color:#ef4444; font-size: 16px;"></i> 
@@ -249,32 +264,13 @@
                         <span id="avg-gap">Jeda Antar Karung: Sedang menghitung...</span>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Kolom Kanan: KPI & Logs -->
-        <div class="right-col" style="display: flex; flex-direction: column; gap: 20px;">
-            <div class="glass-card">
-                    <div class="kpi-item" style="grid-column: span 6;">
-                        <i class="ph-fill ph-package" style="color: #f59e0b; text-align: center;"></i>
-                        <div class="lbl" style="text-align: center;">Total Karung Terdeteksi</div>
-                        <div class="val" id="total-sacks" style="text-align: center; font-size: 32px;">0</div>
-                    </div>
-
-                <div class="panel-header" style="margin-top: 10px;">
-                    <h3><i class="ph-fill ph-list-dashes"></i> Log Deteksi Sinkron</h3>
-                    <input type="text" id="log-search" placeholder="Cari ID Karung..." style="background: rgba(0,0,0,0.5); color: white; border: 1px solid rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 5px; outline: none; font-size: 12px; width: 120px;" onkeyup="filterLogs()">
-                </div>
-                <div class="log-container" id="activity-log">
-                    <!-- JS will insert logs here -->
-                </div>
-            </div>
-        </div>
+            </article>
+        </section>
     </main>
 
     <!-- Hidden Print Template (A4 Paper Style) -->
     <div style="display: none;">
-        <div id="print-template" style="width: 800px; padding: 40px; font-family: 'Times New Roman', serif; color: #000; background: #fff;">
+        <div id="print-template" style="width: 700px; box-sizing: border-box; padding: 30px 40px; font-family: 'Times New Roman', serif; color: #000; background: #fff; margin: 0 auto;">
             <!-- Header -->
             <div style="text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">
                 <h1 style="margin: 0; font-size: 24px; font-weight: bold; text-transform: uppercase;">Enterprise Feedmill</h1>
@@ -288,12 +284,16 @@
                     <td style="padding: 5px;" id="print-date">: {{ date }}</td>
                 </tr>
                 <tr>
-                    <td style="width: 120px; font-weight: bold;">Operator AI</td>
-                    <td>: Key</td>
+                    <td style="padding: 5px; font-weight: bold; width: 150px;">Waktu Analisis</td>
+                    <td style="padding: 5px;" id="print-time-range">: -</td>
                 </tr>
                 <tr>
-                    <td style="font-weight: bold;">Model AI</td>
-                    <td colspan="3">: YOLOv8 Segment</td>
+                    <td style="padding: 5px; width: 150px; font-weight: bold;">Operator AI</td>
+                    <td style="padding: 5px;">: Keyzard Nashbun Manangkali</td>
+                </tr>
+                <tr>
+                    <td style="padding: 5px; font-weight: bold;">Model AI</td>
+                    <td style="padding: 5px;" colspan="3">: YOLOv8 Segment</td>
                 </tr>
             </table>
 
@@ -320,20 +320,26 @@
             </div>
 
             <!-- Tanda Tangan -->
-            <div style="margin-top: 50px; display: flex; justify-content: space-between; text-align: center;">
-                <div style="width: 250px;">
-                    <p style="margin-bottom: 80px;">Dibuat Oleh,</p>
-                    <p style="text-decoration: underline; font-weight: bold; margin: 0;">Key</p>
-                    <p style="margin: 0;">AI System Operator</p>
-                </div>
-                <div style="width: 250px;">
-                    <p style="margin-bottom: 80px;">Disahkan Oleh,</p>
-                    <p style="text-decoration: underline; font-weight: bold; margin: 0;">_____________________</p>
-                    <p style="margin: 0;">Superintendent Area</p>
-                </div>
-            </div>
+            <table id="signature-table" style="width: 100%; margin-top: 40px; text-align: center; border: none; page-break-inside: avoid;">
+                <tr>
+                    <td style="width: 50%; vertical-align: top;">
+                        <p style="margin-bottom: 80px; font-size: 14px;">Operator AI</p>
+                        <p style="font-weight: bold; margin: 0; font-size: 14px;">(Keyzard Nashbun M)</p>
+                    </td>
+                    <td style="width: 50%; vertical-align: top;">
+                        <p style="margin-bottom: 80px; font-size: 14px;">Supir Truk</p>
+                        <p style="font-weight: bold; margin: 0; font-size: 14px;">(........................................)</p>
+                    </td>
+                </tr>
+            </table>
         </div>
     </div>
+
+    <script>
+        // Update Title with Real-time Date
+        const m = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        const dDate = new Date();
+        document.getElementById('live-date-title').innerText = `Laporan Analitik Karung AI | ${dDate.getDate()} ${m[dDate.getMonth()]} ${dDate.getFullYear()}`;
 
         function toggleTheme() {
             const body = document.body;
